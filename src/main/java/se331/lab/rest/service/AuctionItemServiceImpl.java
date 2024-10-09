@@ -1,49 +1,68 @@
 package se331.lab.rest.service;
 
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import se331.lab.rest.service.AuctionItemService;
+import se331.lab.rest.entity.AuctionItem;
+import se331.lab.rest.entity.AuctionItemDTO;
+import se331.lab.rest.repository.AuctionItemRepository;
+import se331.lab.rest.util.LabMapper;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class AuctionItemServiceImpl implements AuctionItemService {
+
     @Autowired
-    final AuctionItemDao auctionItemDao;
+    AuctionItemRepository auctionItemRepository;
+
+    private final LabMapper labMapper = LabMapper.INSTANCE;
 
     @Override
-    public Integer getAuctionItemSize() {
-        return auctionItemDao.getAuctionItemSize();
+    public List<AuctionItemDTO> getAllItems() {
+        List<AuctionItem> auctionItems = auctionItemRepository.findAll();
+        return labMapper.toAuctionItemDTOs(auctionItems);
     }
 
     @Override
-    public Page<AuctionItem> getAuctionItems(Integer pageSize, Integer page) {
-        return auctionItemDao.getAuctionItems(pageSize, page);
+    public AuctionItemDTO getItemById(Long id) {
+        AuctionItem auctionItem = auctionItemRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("AuctionItem not found"));
+        return labMapper.toAuctionItemDTO(auctionItem);
     }
 
     @Override
-    public AuctionItem getAuctionItem(Long id) {
-        return auctionItemDao.getAuctionItem(id);
+    public List<AuctionItemDTO> searchByDescription(String description) {
+        return searchByDescriptionOrType(description, null);
     }
 
     @Override
-    @Transactional
-    public AuctionItem save(AuctionItem auctionItem) {
-        // You can perform any additional logic here before saving, e.g. setting a default bid or validating data
-        return auctionItemDao.save(auctionItem);
+    public List<AuctionItemDTO> searchByDescriptionOrType(String description, String type) {
+        List<AuctionItem> auctionItems = new ArrayList<>();
+
+        if (description != null && !description.isEmpty()) {
+            auctionItems.addAll(auctionItemRepository.findByDescriptionContaining(description));
+        }
+
+        if (type != null && !type.isEmpty()) {
+            auctionItems.addAll(auctionItemRepository.findByTypeContaining(type));
+        }
+
+        return labMapper.toAuctionItemDTOs(auctionItems);
     }
 
     @Override
-    public Page<AuctionItem> getAuctionItems(String description, String type, Pageable pageable) {
-        return auctionItemDao.getAuctionItems(description, type, pageable);
+    public List<AuctionItemDTO> findBySuccessfulBidAmountLessThan(BigDecimal amount) {
+        List<AuctionItem> auctionItems = auctionItemRepository.findBySuccessfulBid_AmountLessThan(amount);
+        return labMapper.toAuctionItemDTOs(auctionItems);
     }
 
     @Override
-    public Page<AuctionItem> getAuctionItemsWithSuccessfulBidLessThan(Double amount, Pageable pageable) {
-        return auctionItemDao.getAuctionItemsWithSuccessfulBidLessThan(amount, pageable);
+    public AuctionItemDTO saveItem(AuctionItemDTO auctionItemDTO) {
+        AuctionItem auctionItem = labMapper.toAuctionItem(auctionItemDTO);
+        auctionItem = auctionItemRepository.save(auctionItem);
+        return labMapper.toAuctionItemDTO(auctionItem);
     }
 }

@@ -1,16 +1,15 @@
 package se331.lab.rest.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import se331.lab.rest.entity.AuctionItem;
-import se331.lab.rest.repository.AuctionItemRepository;
+import se331.lab.rest.entity.AuctionItemDTO;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 public interface AuctionItemService {
-    Integer getAuctionItemSize();
-    Page<AuctionItem> getAuctionItems(Integer pageSize, Integer page);
-    AuctionItem getAuctionItem(Long id);
-    AuctionItem save(AuctionItem auctionItem);
-    Page<AuctionItem> getAuctionItems(String description, String type, Pageable pageable);
-    Page<AuctionItem> getAuctionItemsWithSuccessfulBidLessThan(Double amount, Pageable pageable);
+    List<AuctionItemDTO> getAllItems();
+    AuctionItemDTO getItemById(Long id);
+    List<AuctionItemDTO> searchByDescription(String description); // Keep this for single description search
+    List<AuctionItemDTO> searchByDescriptionOrType(String description, String type); // New method for combined search
+    List<AuctionItemDTO> findBySuccessfulBidAmountLessThan(BigDecimal amount);
+    AuctionItemDTO saveItem(AuctionItemDTO auctionItemDTO);
 }

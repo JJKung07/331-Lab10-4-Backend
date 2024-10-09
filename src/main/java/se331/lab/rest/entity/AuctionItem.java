@@ -1,29 +1,27 @@
 package se331.lab.rest.entity;
 
-import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
+import jakarta.persistence.*;
 import java.util.List;
 
+@Entity
 @Data
 @Builder
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuctionItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Exclude
     Long id;
 
-    String name;
     String description;
-    String types;
+    String type;
 
-    @OneToMany(mappedBy = "auctionItem", cascade = CascadeType.ALL)
-    List<Bid> bids = new ArrayList<>();
+    @OneToMany(mappedBy = "auctionItem")
+    List<Bid> bids;
 
+    @Setter
     @OneToOne
     Bid successfulBid;
+
 }

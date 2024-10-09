@@ -1,22 +1,25 @@
 package se331.lab.rest.entity;
 
-
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
-import lombok.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
+@Entity
 @Data
 @Builder
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class Bid {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    double amount;
-    String dateTime;
+    BigDecimal amount;
+    LocalDateTime datetime;
 
     @ManyToOne
     AuctionItem auctionItem;

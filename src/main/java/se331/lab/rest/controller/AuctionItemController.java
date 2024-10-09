@@ -1,42 +1,48 @@
 package se331.lab.rest.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import se331.lab.rest.entity.AuctionItem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import se331.lab.rest.entity.AuctionItemDTO;
 import se331.lab.rest.service.AuctionItemService;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 @RestController
-@RequiredArgsConstructor
-@RequestMapping("/auction-item")
+@RequestMapping("/auction-items")
 public class AuctionItemController {
-    final AuctionItemService auctionItemService;
+
+    @Autowired
+    AuctionItemService auctionItemService;
 
     @GetMapping
-    public ResponseEntity<?> getAuctionItems(
-            @RequestParam(value = "_limit", required = false) Integer perPage,
-            @RequestParam(value = "_page", required = false) Integer page,
-            @RequestParam(value = "_description", required = false) Integer description,
-            @RequestParam(value = "_type", required = false) Integer type
-    ) {
-        perPage = perPage == null ? 5 : perPage;
-        page = page == null ? 1 : page;
+    public List<AuctionItemDTO> getAllItems() {
+        return auctionItemService.getAllItems();
+    }
 
-        Page<AuctionItem> auctionItemPage;
-        if (description == null && type == null) {
-            auctionItemPage = auctionItemService.getAuctionItems(PageRequest.of(page - 1, perPage));
-        } else {
-            auctionItemPage = auctionItemService.searchAuctionItems(description, type, PageRequest.of(page - 1, perPage));
-        }
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.set("x-total-count", String.valueOf(auctionItemPage.getTotalElements()));
-        return new ResponseEntity<>(auctionItemPage.getContent(), responseHeaders, HttpStatus.OK);
+    @GetMapping("/{id}")
+    public AuctionItemDTO getItemById(@PathVariable Long id) {
+        return auctionItemService.getItemById(id);
+    }
+
+    @GetMapping("/search/description")
+    public List<AuctionItemDTO> searchByDescription(@RequestParam String description) {
+        return auctionItemService.searchByDescription(description);
+    }
+
+    @GetMapping("/search")
+    public List<AuctionItemDTO> searchByDescriptionOrType(@RequestParam(required = false) String description,
+                                                          @RequestParam(required = false) String type) {
+        return auctionItemService.searchByDescriptionOrType(description, type);
+    }
+
+    @GetMapping("/successful-bid/less-than")
+    public List<AuctionItemDTO> searchBySuccessfulBidAmountLessThan(@RequestParam BigDecimal amount) {
+        return auctionItemService.findBySuccessfulBidAmountLessThan(amount);
+    }
+
+    @PostMapping
+    public AuctionItemDTO createAuctionItem(@RequestBody AuctionItemDTO auctionItemDTO) {
+        return auctionItemService.saveItem(auctionItemDTO);
     }
 }
